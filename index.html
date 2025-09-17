@@ -58,7 +58,17 @@
                 <h1 class="text-xl md:text-2xl font-bold text-dark">交易手续费计算器</h1>
             </div>
             <div class="hidden md:flex items-center space-x-4 flex-wrap">
-                <span class="text-sm text-gray-500"><i class="fa fa-info-circle mr-1"></i> 佣金: 0.013%（最低0.5元）</span>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-500"><i class="fa fa-info-circle mr-1"></i> 佣金:</span>
+                    <select id="commission-rate" class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                        <option value="0.013">0.013%（万1.3）</option>
+                        <option value="0.01">0.01%（万1）</option>
+                        <option value="0.03">0.03%（万3）</option>
+                        <option value="custom">自定义</option>
+                    </select>
+                    <input type="number" id="custom-commission" step="0.001" min="0.001" max="1" class="text-sm border border-gray-300 rounded px-2 py-1 w-20 focus:ring-2 focus:ring-primary/50 focus:border-primary hidden" placeholder="0.013">
+                    <span class="text-sm text-gray-500">（最低0.5元）</span>
+                </div>
                 <span class="text-sm text-gray-500"><i class="fa fa-info-circle mr-1"></i> 印花税: 0.05%（股票卖出）</span>
                 <span class="text-sm text-gray-500"><i class="fa fa-info-circle mr-1"></i> 过户费: 0.001%（股票）/0.0001元/份（ETF）</span>
                 <label class="inline-flex items-center ml-4">
@@ -865,11 +875,26 @@
 
     <script>
         // 费率设置
-        const COMMISSION_RATE = 0.013 / 100; // 佣金率（万1.3）
         const STAMP_DUTY_RATE = 0.05 / 100;    // 印花税率（股票卖出）
         const STOCK_TRANSFER_RATE = 0.001 / 100; // 股票过户费率
         const ETF_TRANSFER_FEE_PER_SHARE = 0.0001; // ETF过户费（元/份）
         const BASE_MIN_COMMISSION = 0.5;              // 基础最低佣金
+
+        // 获取当前佣金率
+        function getCommissionRate() {
+            const selectEl = document.getElementById('commission-rate');
+            const customEl = document.getElementById('custom-commission');
+            
+            if (selectEl.value === 'custom') {
+                const customRate = parseFloat(customEl.value);
+                if (isNaN(customRate) || customRate <= 0 || customRate > 1) {
+                    return 0.013 / 100; // 默认值
+                }
+                return customRate / 100;
+            } else {
+                return parseFloat(selectEl.value) / 100;
+            }
+        }
 
         // 是否免除最低5元佣金
         function getMinCommission() {
@@ -881,7 +906,37 @@
         document.addEventListener('DOMContentLoaded', function() {
             // 初始化品种类型切换事件
             initTypeToggleEvents();
+            
+            // 初始化佣金率选择事件
+            initCommissionRateEvents();
         });
+        
+        // 初始化佣金率选择事件
+        function initCommissionRateEvents() {
+            const selectEl = document.getElementById('commission-rate');
+            const customEl = document.getElementById('custom-commission');
+            
+            selectEl.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customEl.classList.remove('hidden');
+                    customEl.focus();
+                } else {
+                    customEl.classList.add('hidden');
+                }
+            });
+            
+            customEl.addEventListener('input', function() {
+                // 实时验证自定义佣金率
+                const rate = parseFloat(this.value);
+                if (!isNaN(rate) && rate > 0 && rate <= 1) {
+                    this.classList.remove('border-red-500');
+                    this.classList.add('border-gray-300');
+                } else {
+                    this.classList.remove('border-gray-300');
+                    this.classList.add('border-red-500');
+                }
+            });
+        }
         
         // 初始化品种类型切换事件
         function initTypeToggleEvents() {
@@ -1027,7 +1082,7 @@
             
             // 计算各项费用
             const totalPrice = price * shares;
-            let commission = totalPrice * COMMISSION_RATE;
+            let commission = totalPrice * getCommissionRate();
             commission = Math.max(commission, getMinCommission()); // 佣金不低于最低标准（可免5）
             
             // 计算过户费（股票和ETF计算方式不同）
@@ -1070,7 +1125,7 @@
             
             // 计算各项费用
             const totalValue = price * shares;
-            let commission = totalValue * COMMISSION_RATE;
+            let commission = totalValue * getCommissionRate();
             commission = Math.max(commission, getMinCommission()); // 佣金不低于最低标准（可免5）
             
             // 股票卖出有印花税，ETF没有
@@ -1116,14 +1171,14 @@
             
             // 计算买入成本
             const buyTotalPrice = buyPrice * shares;
-            let buyCommission = buyTotalPrice * COMMISSION_RATE;
+            let buyCommission = buyTotalPrice * getCommissionRate();
             buyCommission = Math.max(buyCommission, getMinCommission());
             const buyTransferFee = market === 'sh' ? buyTotalPrice * STOCK_TRANSFER_RATE : 0;
             const totalBuyCost = buyTotalPrice + buyCommission + buyTransferFee;
             
             // 计算卖出收入
             const sellTotalValue = sellPrice * shares;
-            let sellCommission = sellTotalValue * COMMISSION_RATE;
+            let sellCommission = sellTotalValue * getCommissionRate();
             sellCommission = Math.max(sellCommission, getMinCommission());
             const stampDuty = sellTotalValue * STAMP_DUTY_RATE;
             const sellTransferFee = market === 'sh' ? sellTotalValue * STOCK_TRANSFER_RATE : 0;
@@ -1185,14 +1240,14 @@
             
             // 计算买入成本
             const buyTotalPrice = buyPrice * shares;
-            let buyCommission = buyTotalPrice * COMMISSION_RATE;
+            let buyCommission = buyTotalPrice * getCommissionRate();
             buyCommission = Math.max(buyCommission, getMinCommission());
             const buyTransferFee = market === 'sh' ? shares * ETF_TRANSFER_FEE_PER_SHARE : 0;
             const totalBuyCost = buyTotalPrice + buyCommission + buyTransferFee;
             
             // 计算卖出收入（ETF无印花税）
             const sellTotalValue = sellPrice * shares;
-            let sellCommission = sellTotalValue * COMMISSION_RATE;
+            let sellCommission = sellTotalValue * getCommissionRate();
             sellCommission = Math.max(sellCommission, getMinCommission());
             const sellTransferFee = market === 'sh' ? shares * ETF_TRANSFER_FEE_PER_SHARE : 0;
             const totalSellAmount = sellTotalValue - sellCommission - sellTransferFee;
@@ -1258,7 +1313,7 @@
             
             // 计算做T买入成本
             const tBuyTotal = tBuyPrice * tShares;
-            let tBuyCommission = tBuyTotal * COMMISSION_RATE;
+            let tBuyCommission = tBuyTotal * getCommissionRate();
             tBuyCommission = Math.max(tBuyCommission, getMinCommission());
             
             let tBuyTransferFee = 0;
@@ -1274,7 +1329,7 @@
             
             // 计算做T卖出收入
             const tSellTotal = tSellPrice * tShares;
-            let tSellCommission = tSellTotal * COMMISSION_RATE;
+            let tSellCommission = tSellTotal * getCommissionRate();
             tSellCommission = Math.max(tSellCommission, getMinCommission());
             
             // 股票卖出有印花税，ETF没有
@@ -1413,7 +1468,7 @@
                 const effSell = Math.max(0.001, sellR - (isNaN(sellSlip) ? 0 : sellSlip));
 
                 const buyTotal = effBuy * shares;
-                let buyCommission = buyTotal * COMMISSION_RATE;
+                let buyCommission = buyTotal * getCommissionRate();
                 buyCommission = Math.max(buyCommission, getMinCommission());
                 let buyTransfer = 0;
                 if (market === 'sh') {
@@ -1421,7 +1476,7 @@
                 }
 
                 const sellTotal = effSell * shares;
-                let sellCommission = sellTotal * COMMISSION_RATE;
+                let sellCommission = sellTotal * getCommissionRate();
                 sellCommission = Math.max(sellCommission, getMinCommission());
                 const stampDuty = (type === 'stock') ? (sellTotal * STAMP_DUTY_RATE) : 0;
                 let sellTransfer = 0;
@@ -1513,3 +1568,5 @@
     </script>
 </body>
 </html>
+
+StockTransactionCostCalculator
