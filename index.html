@@ -71,10 +71,16 @@
                 </div>
                 <span class="text-sm text-gray-500"><i class="fa fa-info-circle mr-1"></i> 印花税: 0.05%（股票卖出）</span>
                 <span class="text-sm text-gray-500"><i class="fa fa-info-circle mr-1"></i> 过户费: 0.001%（股票）/0.0001元/份（ETF）</span>
-                <label class="inline-flex items-center ml-4">
-                    <input type="checkbox" id="waive-min-commission" class="h-4 w-4 text-primary focus:ring-primary">
-                    <span class="ml-2 text-sm text-gray-700">免最低（佣金不设最低0.5元）</span>
-                </label>
+                <div class="flex items-center space-x-2 ml-4">
+                    <span class="text-sm text-gray-500"><i class="fa fa-info-circle mr-1"></i> 最低佣金:</span>
+                    <select id="min-commission-type" class="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                        <option value="0.5">最低0.5元</option>
+                        <option value="none">免最低</option>
+                        <option value="5">最低5元</option>
+                        <option value="custom">自定义最低</option>
+                    </select>
+                    <input type="number" id="custom-min-commission" step="0.01" min="0" class="text-sm border border-gray-300 rounded px-2 py-1 w-20 focus:ring-2 focus:ring-primary/50 focus:border-primary hidden" placeholder="0.5">
+                </div>
             </div>
         </div>
     </header>
@@ -866,7 +872,7 @@
                 </div>
                 
                 <div class="text-sm text-gray-400">
-                    <p>费率说明：佣金 0.013%（最低0.5元） | 印花税 0.05%（股票卖出） | 过户费 0.001%（股票）/0.0001元/份（ETF）</p>
+                    <p>费率说明：佣金 0.013%（可设置最低佣金） | 印花税 0.05%（股票卖出） | 过户费 0.001%（股票）/0.0001元/份（ETF）</p>
                     <p class="mt-1">© 2025 交易手续费计算器 - 保留所有权利</p>
                 </div>
             </div>
@@ -896,10 +902,22 @@
             }
         }
 
-        // 是否免除最低5元佣金
+        // 获取最低佣金设置
         function getMinCommission() {
-            const el = document.getElementById('waive-min-commission');
-            return el && el.checked ? 0 : BASE_MIN_COMMISSION;
+            const selectEl = document.getElementById('min-commission-type');
+            const customEl = document.getElementById('custom-min-commission');
+            
+            if (selectEl.value === 'custom') {
+                const customMin = parseFloat(customEl.value);
+                if (isNaN(customMin) || customMin < 0) {
+                    return 0.5; // 默认值
+                }
+                return customMin;
+            } else if (selectEl.value === 'none') {
+                return 0;
+            } else {
+                return parseFloat(selectEl.value);
+            }
         }
         
         // 页面加载完成后初始化
@@ -909,6 +927,9 @@
             
             // 初始化佣金率选择事件
             initCommissionRateEvents();
+            
+            // 初始化最低佣金选择事件
+            initMinCommissionEvents();
         });
         
         // 初始化佣金率选择事件
@@ -929,6 +950,33 @@
                 // 实时验证自定义佣金率
                 const rate = parseFloat(this.value);
                 if (!isNaN(rate) && rate > 0 && rate <= 1) {
+                    this.classList.remove('border-red-500');
+                    this.classList.add('border-gray-300');
+                } else {
+                    this.classList.remove('border-gray-300');
+                    this.classList.add('border-red-500');
+                }
+            });
+        }
+        
+        // 初始化最低佣金选择事件
+        function initMinCommissionEvents() {
+            const selectEl = document.getElementById('min-commission-type');
+            const customEl = document.getElementById('custom-min-commission');
+            
+            selectEl.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customEl.classList.remove('hidden');
+                    customEl.focus();
+                } else {
+                    customEl.classList.add('hidden');
+                }
+            });
+            
+            customEl.addEventListener('input', function() {
+                // 实时验证自定义最低佣金
+                const minCommission = parseFloat(this.value);
+                if (!isNaN(minCommission) && minCommission >= 0) {
                     this.classList.remove('border-red-500');
                     this.classList.add('border-gray-300');
                 } else {
