@@ -130,6 +130,11 @@
                         <i class="fa fa-life-ring mr-2"></i>做T回本
                     </button>
                 </li>
+                <li role="presentation">
+                    <button class="inline-block py-4 px-5 text-sm font-medium text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 rounded-t-lg" id="rtpl-tab" data-tabs-target="#realtime-pl-calculator" type="button" role="tab" aria-selected="false">
+                        <i class="fa fa-bolt mr-2"></i>行情盈亏
+                    </button>
+                </li>
             </ul>
         </div>
 
@@ -857,6 +862,107 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 行情盈亏（代码/名称→最新价） -->
+            <div class="hidden p-6 bg-white rounded-lg shadow card-shadow" id="realtime-pl-calculator" role="tabpanel">
+                <h2 class="text-xl font-bold text-dark mb-6 flex items-center">
+                    <i class="fa fa-bolt text-warning mr-2"></i>行情盈亏（最新价）
+                </h2>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">股票代码或名称</label>
+                            <div class="relative">
+                                <input type="text" id="rt-symbol" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus transition duration-200" placeholder="如 600000 / 平安银行">
+                                <div id="rt-suggest" class="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg hidden max-h-60 overflow-auto"></div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">支持输入代码或名称，选择联想项后计算。</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">品种类型</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="rt-type" value="stock" checked class="text-primary focus:ring-primary h-4 w-4">
+                                    <span class="ml-2 text-sm text-gray-700">股票</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="rt-type" value="etf" class="text-primary focus:ring-primary h-4 w-4">
+                                    <span class="ml-2 text-sm text-gray-700">ETF</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="rt-cost" class="block text-sm font-medium text-gray-700 mb-1">持仓成本价 (元/股)</label>
+                            <input type="number" step="0.01" min="0.01" id="rt-cost" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus transition duration-200" placeholder="每股成本（建议含买入费用）">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="rt-shares" class="block text-sm font-medium text-gray-700 mb-1">持仓数量 (股/份)</label>
+                            <input type="number" step="100" min="100" id="rt-shares" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus transition duration-200" placeholder="输入数量（100的倍数）">
+                        </div>
+
+                        <div class="mt-6">
+                            <button id="calculate-rtpl" class="w-full bg-primary text-white py-3 px-6 rounded-lg font-medium btn-hover flex items-center justify-center">
+                                <i class="fa fa-calculator mr-2"></i>查询最新价并计算
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-5 border border-gray-100">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">计算结果</h3>
+                        <div id="rtpl-results" class="space-y-3 text-gray-700">
+                            <div class="result-item">
+                                <span>证券信息：</span>
+                                <span id="rtpl-info" class="font-medium">- -</span>
+                            </div>
+                            <div class="result-item">
+                                <span>最新价：</span>
+                                <span id="rtpl-last" class="font-medium">- -</span>
+                            </div>
+                            <div class="result-item">
+                                <span>昨收：</span>
+                                <span id="rtpl-prev" class="font-medium">- -</span>
+                            </div>
+                            <div class="result-item">
+                                <span>涨跌幅：</span>
+                                <span id="rtpl-chg" class="font-medium">- -</span>
+                            </div>
+                            <div class="result-item">
+                                <span>卖出佣金：</span>
+                                <span id="rtpl-commission" class="font-medium">- -</span>
+                            </div>
+                            <div class="result-item" id="rtpl-stamp-duty-container">
+                                <span>印花税：</span>
+                                <span id="rtpl-stamp" class="font-medium">- -</span>
+                            </div>
+                            <div class="result-item">
+                                <span>过户费：</span>
+                                <span id="rtpl-transfer" class="font-medium">- -</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="font-semibold">卖出实际到账：</span>
+                                <span id="rtpl-actual" class="font-semibold">- -</span>
+                            </div>
+                            <div class="result-item">
+                                <span>原总成本（按持仓成本）：</span>
+                                <span id="rtpl-orig" class="font-medium">- -</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="font-semibold">净盈亏：</span>
+                                <span id="rtpl-net" class="font-semibold">- -</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="font-semibold">收益率：</span>
+                                <span id="rtpl-rate" class="font-semibold">- -</span>
+                            </div>
+                            <div class="text-xs text-gray-400">提示：默认认为持仓成本已包含买入费用，仅计算卖出侧费用。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -1579,6 +1685,227 @@
             lossEl.className = lossToCover > 0 ? 'font-medium text-danger' : 'font-medium text-success';
 
             animateResults('tbe-results');
+        });
+
+        // ===== 行情盈亏：代码/名称 -> 最新价（Sina JSONP）=====
+        // JSONP加载器（支持GBK）
+        function loadScriptJsonp(src, { charset = 'utf-8' } = {}) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.charset = charset;
+                script.async = true;
+                script.onload = () => resolve();
+                script.onerror = () => reject(new Error('Script load error'));
+                document.body.appendChild(script);
+                // 超时保护
+                setTimeout(() => {
+                    try { document.body.removeChild(script); } catch(e) {}
+                }, 8000);
+            });
+        }
+
+        // 解析市场与标准symbol
+        function detectMarketFromCode(code) {
+            const c = (code || '').trim();
+            if (c.startsWith('sh') || c.startsWith('SH')) return 'sh';
+            if (c.startsWith('sz') || c.startsWith('SZ')) return 'sz';
+            if (/^\d{6}$/.test(c)) {
+                return c.startsWith('6') ? 'sh' : 'sz';
+            }
+            return 'sh';
+        }
+
+        function normalizeSymbol(input) {
+            const s = (input || '').trim();
+            if (!s) return null;
+            if (/^(sh|sz)\d{6}$/i.test(s)) return s.toLowerCase();
+            const digits = s.match(/\d{6}/);
+            if (digits) {
+                const code = digits[0];
+                return detectMarketFromCode(code) + code;
+            }
+            return null;
+        }
+
+        // 拉取最新价（Sina hq）
+        async function fetchLatestQuoteSina(symbol) {
+            const key = 'hq_str_' + symbol;
+            try { delete window[key]; } catch(e) {}
+            await loadScriptJsonp(`https://hq.sinajs.cn/list=${symbol}`, { charset: 'gbk' });
+            const raw = window[key];
+            if (!raw || typeof raw !== 'string') throw new Error('无行情数据');
+            const parts = raw.split(',');
+            // Sina字段：0名称,1今开,2昨收,3最新,4最高,5最低,...
+            const name = parts[0] || '';
+            const prevClose = parseFloat(parts[2] || '0');
+            const last = parseFloat(parts[3] || '0');
+            const time = parts[30] && parts[31] ? (parts[30] + ' ' + parts[31]) : '';
+            return { name, prevClose, last, time };
+        }
+
+        // 拉取最新价（Tencent qt.gtimg.cn）
+        async function fetchLatestQuoteTencent(symbol) {
+            // 腾讯不区分大小写，但统一小写更稳妥
+            const sym = symbol.toLowerCase();
+            const key = 'v_' + sym;
+            try { delete window[key]; } catch(e) {}
+            await loadScriptJsonp(`https://qt.gtimg.cn/q=${sym}`, { charset: 'gbk' });
+            const raw = window[key];
+            if (!raw || typeof raw !== 'string') throw new Error('无行情数据');
+            // 形如：v_sh600000="1~浦发银行~600000~10.10~10.20~10.00~..."
+            const body = raw.replace(/^.*?=\"/, '').replace(/\";?$/, '');
+            const arr = body.split('~');
+            const name = arr[1] || '';
+            const last = parseFloat(arr[3] || '0');
+            const prevClose = parseFloat(arr[4] || '0');
+            const time = '';
+            if (!isFinite(last) || !isFinite(prevClose)) throw new Error('解析失败');
+            return { name, prevClose, last, time };
+        }
+
+        async function fetchLatestQuote(symbol) {
+            try {
+                const q = await fetchLatestQuoteSina(symbol);
+                if (isFinite(q.last) && q.last > 0) return q;
+                // 回退
+                return await fetchLatestQuoteTencent(symbol);
+            } catch(e) {
+                // 回退
+                return await fetchLatestQuoteTencent(symbol);
+            }
+        }
+
+        // 名称/代码联想（Sina suggest）
+        let suggestTimer = null;
+        const suggestBox = document.getElementById('rt-suggest');
+        const symbolInput = document.getElementById('rt-symbol');
+
+        async function fetchSuggest(query) {
+            try { delete window.suggestvalue; } catch(e) {}
+            await loadScriptJsonp(`https://suggest3.sinajs.cn/suggest/type=11,12,13,14,15&key=${encodeURIComponent(query)}`, { charset: 'gbk' });
+            const txt = window.suggestvalue || '';
+            // 返回以 ; 分隔多条, 每条以 , 分隔字段，常见第5项为完整symbol（shXXXXXX/szXXXXXX）
+            const items = txt.split(';').map(s => s.trim()).filter(Boolean).map(row => row.split(','));
+            const mapped = items.map(arr => {
+                const code = (arr[0] || '').trim();
+                const name = (arr[1] || '').trim();
+                const full = (arr[4] || '').trim();
+                const symbol = /^(sh|sz)\d{6}$/i.test(full) ? full.toLowerCase() : (code && /^\d{6}$/.test(code) ? (detectMarketFromCode(code) + code) : '');
+                return { name, code, symbol };
+            }).filter(x => x.symbol);
+            return mapped.slice(0, 10);
+        }
+
+        function renderSuggest(list) {
+            if (!list.length) { suggestBox.classList.add('hidden'); suggestBox.innerHTML=''; return; }
+            suggestBox.innerHTML = list.map(i => `
+                <div class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm" data-symbol="${i.symbol}" data-name="${i.name}" data-code="${i.code}">
+                    <span class="font-medium mr-2">${i.name}</span><span class="text-gray-500">${i.code.toUpperCase()} · ${i.symbol.toUpperCase()}</span>
+                </div>
+            `).join('');
+            suggestBox.classList.remove('hidden');
+        }
+
+        symbolInput.addEventListener('input', () => {
+            const q = symbolInput.value.trim();
+            if (!q) { suggestBox.classList.add('hidden'); suggestBox.innerHTML=''; return; }
+            clearTimeout(suggestTimer);
+            suggestTimer = setTimeout(async () => {
+                try {
+                    // 若纯数字并长度>=3，直接展示基于代码的猜测
+                    if (/^\d{3,}$/.test(q)) {
+                        const code = q.padEnd(6, '0').slice(0, 6);
+                        renderSuggest([{ name: '代码匹配', code, symbol: (detectMarketFromCode(code) + code) }]);
+                        return;
+                    }
+                    const list = await fetchSuggest(q);
+                    renderSuggest(list);
+                } catch(e) {
+                    suggestBox.classList.add('hidden');
+                }
+            }, 250);
+        });
+
+        suggestBox.addEventListener('click', (e) => {
+            const item = e.target.closest('[data-symbol]');
+            if (!item) return;
+            const nm = item.getAttribute('data-name');
+            const cd = item.getAttribute('data-code');
+            const sym = item.getAttribute('data-symbol');
+            symbolInput.value = `${cd} ${nm}`;
+            suggestBox.classList.add('hidden');
+            symbolInput.setAttribute('data-picked-symbol', sym);
+        });
+
+        // 计算行情盈亏
+        document.getElementById('calculate-rtpl').addEventListener('click', async () => {
+            const type = getSelectedType('rt');
+            const cost = parseFloat(document.getElementById('rt-cost').value);
+            const shares = parseInt(document.getElementById('rt-shares').value);
+            const inputRaw = symbolInput.value.trim();
+            let symbol = symbolInput.getAttribute('data-picked-symbol') || normalizeSymbol(inputRaw);
+
+            if (isNaN(cost) || isNaN(shares) || cost <= 0 || shares <= 0 || shares % 100 !== 0) {
+                alert('请输入有效的持仓成本与数量（数量为100的倍数）');
+                return;
+            }
+            if (!symbol) {
+                // 未选择联想项时，尝试用联想接口自动匹配第一条
+                try {
+                    const list = await fetchSuggest(inputRaw);
+                    if (list && list.length > 0) {
+                        symbol = list[0].symbol;
+                        symbolInput.setAttribute('data-picked-symbol', symbol);
+                    }
+                } catch(e) {}
+                if (!symbol) {
+                    alert('未匹配到有效标的。可输入代码（如 600000／sz000001）或名称后从联想中选择。');
+                    return;
+                }
+            }
+
+            try {
+                const quote = await fetchLatestQuote(symbol);
+                const market = detectMarketFromCode(symbol);
+                const totalValue = quote.last * shares;
+                let commission = totalValue * getCommissionRate();
+                commission = Math.max(commission, getMinCommission());
+                const stamp = (type === 'stock') ? (totalValue * STAMP_DUTY_RATE) : 0;
+                let transfer = 0;
+                if (market === 'sh') {
+                    transfer = (type === 'stock') ? (totalValue * STOCK_TRANSFER_RATE) : (shares * ETF_TRANSFER_FEE_PER_SHARE);
+                }
+                const actual = totalValue - commission - stamp - transfer;
+                const orig = cost * shares;
+                const net = actual - orig;
+                const rate = net / orig;
+
+                document.getElementById('rtpl-info').textContent = `${quote.name || ''} ${symbol.toUpperCase()} ${quote.time || ''}`.trim();
+                document.getElementById('rtpl-last').textContent = isFinite(quote.last) ? formatCurrency(quote.last) : '- -';
+                document.getElementById('rtpl-prev').textContent = isFinite(quote.prevClose) ? formatCurrency(quote.prevClose) : '- -';
+                const chgPct = (isFinite(quote.last) && isFinite(quote.prevClose) && quote.prevClose > 0) ? ((quote.last - quote.prevClose) / quote.prevClose) : NaN;
+                document.getElementById('rtpl-chg').textContent = isFinite(chgPct) ? formatPercentage(chgPct) : '- -';
+                document.getElementById('rtpl-commission').textContent = formatCurrency(commission);
+                document.getElementById('rtpl-stamp').textContent = formatCurrency(stamp);
+                document.getElementById('rtpl-transfer').textContent = formatCurrency(transfer);
+                document.getElementById('rtpl-actual').textContent = formatCurrency(actual);
+                document.getElementById('rtpl-orig').textContent = formatCurrency(orig);
+                const netEl = document.getElementById('rtpl-net');
+                netEl.textContent = formatCurrency(net);
+                netEl.className = net >= 0 ? 'font-semibold text-success' : 'font-semibold text-danger';
+                const rateEl = document.getElementById('rtpl-rate');
+                rateEl.textContent = formatPercentage(rate);
+                rateEl.className = rate >= 0 ? 'font-semibold text-success' : 'font-semibold text-danger';
+
+                // ETF不显示印花税
+                const stampBox = document.getElementById('rtpl-stamp-duty-container');
+                stampBox.style.display = (type === 'stock') ? 'flex' : 'none';
+
+                animateResults('rtpl-results');
+            } catch(err) {
+                alert('获取行情失败，请检查代码/网络后重试');
+            }
         });
         
         // 结果区域动画效果
